@@ -74,8 +74,8 @@ Here are rules about the preceeding devices:
 - light.theatre_cove_lights should be turned on to a brightness of 20% when a video stops playing for more than 10 seconds.
 
 - The video rack has a computer display on it.  The display's brightness is controlled with two shell_commands:
-- shell_command.sophie_screen_up raises the brightness of the computer display.
-- shell_command.sophie_screen_dn lowers the brightness of the computer display.
+  - shell_command.sophie_screen_up raises the brightness of the computer display.
+  - shell_command.sophie_screen_dn lowers the brightness of the computer display.
 - the computer display's brightness should be raised when someone stands in front of the equipment rack.  This is detected via the binary_sensor.presence_sensor_fp2_equipment.
 - the computer display's brightness should be lowered when someone walks away from the equipment rack.  This is detected via the binary_sensor.presence_sensor_fp2_equipment changing state to "Clear".
 - the computer display's brightness should be raised when the first person enters the theatre.
@@ -116,40 +116,4 @@ Take into consideration the following:
 - There can be multiple events happening at the same time. Make sure that the automations don't perform only one action when a trigger occurs then stop; automations should check for multiple triggers and act independently.
 - you can create multiple automations.  They don't all need to be controlled by one or two.
 
--------
-Central HVAC and Ecobee Integration:
-The house's central HVAC system is controlled by the Ecobee integration, managing the overall temperature of the house.
 
-Theatre Room Setup:
-The theatre room has its own HVAC vents connected to the central system.
-It contains an AC Infinity fan, which operates independently to remove hot air from the room and bring in fresh air.
-There's a computer server in the theatre, and its temperature is monitored using the entity 'sensor.sophie_lan_blah_composite_temperature'. Corrective action should be taken if this temperature exceeds 55°C.
-
-Automation Logic:
-When nobody is in the room, the primary concern is the safety of the computer server. If the temperature of the server exceeds 55°C, actions need to be taken to cool the room.
-When the room is occupied, the focus is on maintaining comfort. The AC Infinity fan should operate at a minimum of 20% to ensure fresh air circulation.
-If the room temperature exceeds 25°C, the fan speed can be increased to 40% for better air circulation.
-If the room temperature exceeds 30°C, the central HVAC can be turned on for a short duration of 10 minutes to assist in cooling. During this time, the AC Infinity fan should operate at 40%.
-Hysteresis Prevention: Automations should be designed to prevent rapid toggling of states due to minor temperature fluctuations, especially regarding the actions related to the AC Infinity fan and central HVAC system.
-
-Climate Summary:
-Safety of Computer Server with Notification:
-
-Trigger: Monitors the temperature of the computer server.
-Condition: Triggers when the server temperature exceeds 55°C.
-Action: Turns on the AC Infinity fan to 40% speed for cooling and sends a notification to your iPhone with the current server temperature.
-Maintain Comfort When Room Occupied:
-
-Trigger: Detects when the room becomes occupied.
-Action: Sets the AC Infinity fan to a minimum speed of 20% to ensure fresh air circulation.
-Increase Fan Speed if Room Temperature Exceeds 25°C:
-
-Trigger: Monitors the room temperature.
-Action: Increases the AC Infinity fan speed to 40% if the room temperature exceeds 25°C.
-Assist Cooling with Central HVAC if Temp Exceeds 30:
-
-Trigger: Monitors the room temperature.
-Action:
-Turns on the central HVAC system and sets it to cooling mode.
-Sets the AC Infinity fan to 40% speed for better air circulation.
-After 10 minutes, turns off the central HVAC system and restores its previous mode and fan speed.
