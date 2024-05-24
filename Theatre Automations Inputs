@@ -1,0 +1,155 @@
+I have a home theatre room that I want to automate using Home Assistant automations.
+I will describe the room, it's contents, it's rules, and the workflow needed to operate it.
+
+There are 3 presence detector sensors in the theatre:
+- binary_sensor.presence_sensor_fp2_occupied detects if anyone is in the theatre
+- binary_sensor.presence_sensor_fp2_seating detects if someone is sitting on the couch
+- binary_sensor.presence_sensor_fp2_equipment detects if someone is standing in front of the equipment rack.
+
+There are six lights in the theatre:
+- switch.bluetooth_proxy_2_starceiling
+- light.theatre_spot
+- light.ihome_smartplug_7d886c_lamp
+- light.theatre_courtesy
+- light.milight_hub_theatre_shelves
+- light.theatre_cove_lights
+
+There is an Nividia Shield media player that has an entity_id of media_player.android_tv_192_168_1_22.
+
+There is a fan that controls the temperature in the room.  It's entity_id is fan.ac_infinity_fan_fan.  It's speed can be controlled by fan.set_percentage.
+There is a temperature sensor in the room.  It's entity_id is sensor.ac_infinity_fan_temperature
+
+There is a couch in the room.
+There is an audio video equipment rack in the room.
+There are some shelves next to the equipment rack.
+The video rack has a computer display on it
+There is an Nvidia Shield media player in the room.  It is the primary device for playing videos.
+There is a Denon AVR in the equipment rack that turns on whenever the Nvidia Sheild turns on.
+The Denon AVR turns off when the Nvidia Shield turns off.
+The NVidia Shield turns off after 20 minutes of inactivity.
+There is a video projector in the room that is connected to the Denon AVR.
+The video projector turns on when the Denon AVR turns on.
+
+Here are rules about the preceeding devices:
+
+- binary_sensor.presence_sensor_fp2_occupied is "Clear" when there is nobody in the room
+- binary_sensor.presence_sensor_fp2_occupied is "Detected" when there is anyone in the room 
+- binary_sensor.presence_sensor_fp2_occupied remains "Detected" if the room is occupied, and another person enters the room. 
+
+- binary_sensor.presence_sensor_fp2_occupied remains as "Detected" as long as there is anyone in the room
+- binary_sensor.presence_sensor_fp2_equipment state changes to "Detected" if anyone approaches, or stands in front of the equipment rack
+- binary_sensor.presence_sensor_fp2_equipment state changes to "Clear" if there is nobody in front of the equipment rack
+- binary_sensor.presence_sensor_fp2_equipment state changes from "Detected" to "Clear" when a person moves away from the equipment rack
+- binary_sensor.presence_sensor_fp2_seating state changes to "Detected" if anyone sits on the couch.  It changes to "Clear" if nobody is sitting on the couch.
+
+- switch.bluetooth_proxy_2_starceiling is a decorative light in the ceiling.  It can be turned on or off only and cannot dim
+- switch.bluetooth_proxy_2_starceiling is controlled via the switch.bluetooth_proxy_2_starceiling entity_id
+- switch.bluetooth_proxy_2_starceiling should be turned on when the first person enters the room
+- switch.bluetooth_proxy_2_starceiling should be turned off when a video starts playing
+- switch.bluetooth_proxy_2_starceiling should be turned on when a video stops playing for more than 10 seconds.
+
+- light.theatre_spot is controlled via the light.theatre_spot entity_id.  It is dimmable.
+- light.theatre_spot should be turned on when the first person enters the room.
+- light.theatre_spot should be turned off when a video starts to play.
+- light.theatre_spot should be turned on when a vieo stops playing for more than 10 seconds.
+
+- light.ihome_smartplug_7d886c_lamp is a decorative lamp in the corner of the room.  It can be turned on or off only.
+- light.ihome_smartplug_7d886c_lamp should be turned on when the first person enters the room
+- light.ihome_smartplug_7d886c_lamp should be turned off when a video starts to play.
+- light.ihome_smartplug_7d886c_lamp should be turned on when a vieo stops playing for more than 10 seconds.
+
+- light.theatre_courtesy is a series of lights along the bottom of the wall that illuminates the floor. It is dimmable.
+- light.theatre_courtesy should always turn on to a brightness of 40% when the first person enters the theatre.
+- light.theatre_courtesy brightness should never exceed 40%.
+- light.theatre_courtesy should be dimmed down to 12% when any video starts playing.
+- light.theatre_courtesy should be brightened up to 30% if a video is paused or stopped.
+
+- light.milight_hub_theatre_shelves should be turned on to a brightness level of 30% when the first person enters the theatre.
+- light.milight_hub_theatre_shelves should be dimmed down to 12% when a video starts playing
+- light.milight_hub_theatre_shelves should brighten to 30% if anyone approaches the equipment rack.
+
+- light.theatre_cove_lights are the main overhead lights in the theatre.
+- light.theatre_cove_lights should be turned on to a brightness of 30% when the first person enters the theatre.
+- light.theatre_cove_lights should be turned off when a video starts playing.
+- light.theatre_cove_lights should be turned on to a brightness of 20% when a video stops playing for more than 10 seconds.
+
+- The video rack has a computer display on it.  The display's brightness is controlled with two shell_commands:
+- shell_command.sophie_screen_up raises the brightness of the computer display.
+- shell_command.sophie_screen_dn lowers the brightness of the computer display.
+- the computer display's brightness should be raised when someone stands in front of the equipment rack.  This is detected via the binary_sensor.presence_sensor_fp2_equipment.
+- the computer display's brightness should be lowered when someone walks away from the equipment rack.  This is detected via the binary_sensor.presence_sensor_fp2_equipment changing state to "Clear".
+- the computer display's brightness should be raised when the first person enters the theatre.
+
+- When the Nvidia Shield turns on, it turns on the Denon AVR automatically, which in turn turns on the video projector automatically.  There is no need to create automations to turn on the Denon AVR or the projector.
+- When the Nvidia Shield turns off, it turns off the Denon AVR and the video projector automatically.  There is no need to create automations to turn off the Denon AVR or the projector.
+
+- when the YouTube app is running on the Nvidia Shield and a video is not playing in YouTube, the entity_id media_player.android_tv_192_168_1_22 has an attribute "app_name" value of "YouTube" and a state of "idle"
+- when the YouTube app is running on the Nvidia Shield, and a video is playing in YouTube, the entity_id media_player.android_tv_192_168_1_22 has an attribute "app_name" value of "YouTube" and a state of "playing"
+- when the YouTube app is running on the Nvidia Shield and a video is paused in YouTube, the entity_id media_player.android_tv_192_168_1_22 has an attribute "app_name" value of "YouTube" and a state of "paused"
+
+- when the Plex app is running on the Nvidia Shield but no video is playing in Plex, the entity_id media_player.android_tv_192_168_1_22 has an attribute "app_name" value of "Plex". and a state of "idle"
+- when the Plex app is running on the Nvidia Shield, and a video is playing in Plex, the entity_id media_player.android_tv_192_168_1_22 has an attribute "app_name" value of "Plex". and a state of "playing"
+- when the Plex app is running on the Nvidia Shield and a video is paused in Plex, the entity_id media_player.android_tv_192_168_1_22 has an attribute "app_name" value of "Plex". and a state of "paused"
+
+
+Here are the automations I would like:
+- when the last person leaves the theatre, all the lights, switches and the computer display should be turned off or dimmed completely.
+- when the first person enters the empty theatre, the lights should be turned on as previously described
+- if a subsequent second or more people enter the occupied room, nothing should be changed
+- if anyone sits down on the empty couch, the Nvidia Shield should be turned on.  Recall that this automatically turns on the Denon AVR and the video projector so no additional code needs to be created to control the Denon AVR or the video projector.
+- if another person sits down on the occupied couch, nothing should be changed.
+- when a video starts playing, dim the lights as per the previous rules I described
+- if a video is paused for more than 5 seconds, keep all lights as they are except the courtesy lights.  Raise the courtesy lights brightness up to 30%.
+- when a video is not playing on plex or youtube, raise the brightness of the lights back up as previously described.
+
+In addition to the infinity fan and temperature sensor in the room, the house has central heating and air conditioning and there are vents in the theatre that receive this central HVAC air.  The whole house is controlled by an Ecobee integration.  The ecobee entity_ids are:
+- sensor.my_ecobee_humidity
+- sensor.my_ecobee_temperature
+
+I want the following automation for the theatre:
+- if the temperature of the room rises above 24, increase the infinity fan speed to 4 for 10 minutes.
+- if the temperature of the room rises above 29, turn on the central air conditioning for 10 minutes, set to cool.  Then change the ecobee settings back to the way they were before this 10 minute cool cycle.
+- when the room is empty, and the temperature of the room is 24 or below, set the infinity fan speed to 0.
+- when the room is occupied, and the temperature of the room is 24 or below, set the infinity fan speed to 2.
+
+Take into consideration the following:
+- There can be multiple events happening at the same time. Make sure that the automations don't perform only one action when a trigger occurs then stop; automations should check for multiple triggers and act independently.
+- you can create multiple automations.  They don't all need to be controlled by one or two.
+
+-------
+Central HVAC and Ecobee Integration:
+The house's central HVAC system is controlled by the Ecobee integration, managing the overall temperature of the house.
+
+Theatre Room Setup:
+The theatre room has its own HVAC vents connected to the central system.
+It contains an AC Infinity fan, which operates independently to remove hot air from the room and bring in fresh air.
+There's a computer server in the theatre, and its temperature is monitored using the entity 'sensor.sophie_lan_blah_composite_temperature'. Corrective action should be taken if this temperature exceeds 55°C.
+
+Automation Logic:
+When nobody is in the room, the primary concern is the safety of the computer server. If the temperature of the server exceeds 55°C, actions need to be taken to cool the room.
+When the room is occupied, the focus is on maintaining comfort. The AC Infinity fan should operate at a minimum of 20% to ensure fresh air circulation.
+If the room temperature exceeds 25°C, the fan speed can be increased to 40% for better air circulation.
+If the room temperature exceeds 30°C, the central HVAC can be turned on for a short duration of 10 minutes to assist in cooling. During this time, the AC Infinity fan should operate at 40%.
+Hysteresis Prevention: Automations should be designed to prevent rapid toggling of states due to minor temperature fluctuations, especially regarding the actions related to the AC Infinity fan and central HVAC system.
+
+Climate Summary:
+Safety of Computer Server with Notification:
+
+Trigger: Monitors the temperature of the computer server.
+Condition: Triggers when the server temperature exceeds 55°C.
+Action: Turns on the AC Infinity fan to 40% speed for cooling and sends a notification to your iPhone with the current server temperature.
+Maintain Comfort When Room Occupied:
+
+Trigger: Detects when the room becomes occupied.
+Action: Sets the AC Infinity fan to a minimum speed of 20% to ensure fresh air circulation.
+Increase Fan Speed if Room Temperature Exceeds 25°C:
+
+Trigger: Monitors the room temperature.
+Action: Increases the AC Infinity fan speed to 40% if the room temperature exceeds 25°C.
+Assist Cooling with Central HVAC if Temp Exceeds 30:
+
+Trigger: Monitors the room temperature.
+Action:
+Turns on the central HVAC system and sets it to cooling mode.
+Sets the AC Infinity fan to 40% speed for better air circulation.
+After 10 minutes, turns off the central HVAC system and restores its previous mode and fan speed.
