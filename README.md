@@ -16,3 +16,5 @@ Then if I come back to things a day or week later, I simply paste the text file 
 It seems to work well - it describes the environment and produces suggestions that make sense.  For example it will understand people don't want the room too warm; that there's no point cooling an empty room; that the lights shouldn't all go (back) on if a second person enters a room where someone is already in it watching a video. 
 
 **
+
+go to the Code section of this github repository to see more of the text dialog and responses. 
